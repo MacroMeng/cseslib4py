@@ -176,4 +176,4 @@ class Schedule(UserList[SingleDaySchedule]):
 
     @override
     def __getitem__(self, index: int) -> SingleDaySchedule:
-        return self.data[index - 1]
+        return self.data[index]
