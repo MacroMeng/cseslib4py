@@ -79,6 +79,10 @@ docs = [
     "sphinxcontrib-qthelp==2.0.0",
     "sphinxcontrib-serializinghtml==2.0.0",
 ]
+tests = [
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0"
+]
 
 [project.urls]
 "Homepage" = "https://github.com/MacroMeng/cseslib4py"
