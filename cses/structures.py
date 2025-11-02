@@ -7,7 +7,7 @@
 import datetime
 from collections import UserList
 from collections.abc import Sequence
-from typing import override, Optional, Literal, Annotated
+from typing import Optional, Literal, Annotated, Union
 
 from pydantic import BaseModel, ValidationError, BeforeValidator, field_serializer
 
@@ -47,8 +47,8 @@ class Lesson(BaseModel):
 
     Args:
         subject (str): 课程的科目，应与 ``Subject`` 中之一的 ``name`` 属性相同
-        start_time (str | int | datetime.time): 开始的时间（若输入为 ``str`` 或 ``int`` ，则会转化为datetime.time对象）
-        end_time (str | int | datetime.time): 结束的时间（若输入为 ``str`` 或 ``int`` ，则会转化为datetime.time对象）
+        start_time (Union[str, int, datetime.time]): 开始的时间（若输入为 ``str`` 或 ``int`` ，则会转化为datetime.time对象）
+        end_time (Union[str, int, datetime.time]): 结束的时间（若输入为 ``str`` 或 ``int`` ，则会转化为datetime.time对象）
 
     .. warning::
         ``start_time`` 与 ``end_time`` 均为 ``datetime.time`` 对象，即使输入为（合法的） ``str`` （针对时间文字） 或 ``int``  （针对一天中的秒数）。
@@ -151,9 +151,8 @@ class Schedule(UserList[SingleDaySchedule]):
     存储每天课程安排的列表。列表会按照星期排序。
 
     .. caution::
-        在访问一个 ``Schedule`` 中的项目时，注意索引从 1 开始，而不是从 0 开始。
-        这是为了可以按照星期访问课表，而不是按照 Python 的逻辑，所以访问星期一的课表使用 ``schedule[1]`` 而不是 ``schedule[0]`` 。
-        若你想要以 Python 的逻辑访问课表，请使用 ``data`` 属性，如访问星期一的课表需要使用 ``schedule.data[0]`` 。
+        在访问一个 ``Schedule`` 中的项目时，注意索引从 0 开始。
+        这意味着访问星期一的课表需要使用 ``schedule[0]`` ，而不是 ``schedule[1]`` 。
 
     Examples:
         >>> s = Schedule([
@@ -162,16 +161,37 @@ class Schedule(UserList[SingleDaySchedule]):
         ...     SingleDaySchedule(enable_day=2, classes=[Lesson(subject='数学', start_time=datetime.time(9, 0, 0),
         ...                       end_time=datetime.time(9, 45, 0))], name='星期二', weeks='even')
         ... ])
-        >>> s[1].enable_day
+        >>> s[0].enable_day
         1
     """
     def __init__(self, args: Sequence[SingleDaySchedule]):
         result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
         super().__init__(result)
 
-    @override
-    def __getitem__(self, index: int) -> SingleDaySchedule:
+    def by_weekday(self, index: Literal[1, 2, 3, 4, 5, 6, 7]) -> SingleDaySchedule:
+        """
+        根据星期获取对应的课程安排。若索引合法，其效果相当于 ``schedule[index - 1]`` 。
+
+        Args:
+            index (Literal[1, 2, 3, 4, 5, 6, 7]): 周次索引，从 1 开始（如访问星期一的课表，索引为 1）
+
+        Returns:
+            SingleDaySchedule: 对应星期的课程安排
+
+        Raises:
+            IndexError: 如果索引超出范围 [1, 7]
+
+        Examples:
+            >>> s = Schedule([
+            ...     SingleDaySchedule(enable_day=1, classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0),
+            ...                       end_time=datetime.time(8, 45, 0))], name='星期一', weeks='odd'),
+            ...     SingleDaySchedule(enable_day=2, classes=[Lesson(subject='数学', start_time=datetime.time(9, 0, 0),
+            ...                       end_time=datetime.time(9, 45, 0))], name='星期二', weeks='even')
+            ... ])
+            >>> s.by_weekday(1).enable_day
+            1
+        """
         if index < 1 or index > 7:
-            utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.__getitem__')
+            utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week')
             raise IndexError(f'Index {index} out of range [1, 7]')
         return self.data[index - 1]

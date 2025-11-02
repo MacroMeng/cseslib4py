@@ -2,7 +2,7 @@
 import datetime
 import os
 
-import yaml
+import yaml  # type: ignore [import]
 
 import cses.structures as st
 import cses.errors as err
@@ -42,7 +42,7 @@ class CSES:
         """
         self.version = 1
         self.subjects = {}
-        self.schedules = []
+        self.schedules = st.Schedule([])
 
     @classmethod
     def from_str(cls, content: str) -> 'CSES':
@@ -68,7 +68,7 @@ class CSES:
             log.debug(f"Processing subjects: {repr_(data['subjects'])}")
             new_schedule.subjects = {s['name']: st.Subject(**s) for s in data['subjects']}
         except st.ValidationError as e:
-            raise err.ParseError(f'科目数据有误: {data['subjects']}') from e
+            raise err.ParseError(f'科目数据有误: {data["subjects"]}') from e
 
         # 课程处理&检查
         schedules = data['schedules']
@@ -96,7 +96,7 @@ class CSES:
             ])
             log.debug(f"Built schedules: {repr_(new_schedule.schedules)}")
         except st.ValidationError as e:
-            raise err.ParseError(f'课程数据有误: {data['schedules']}') from e
+            raise err.ParseError(f'课程数据有误: {data["schedules"]}') from e
 
         log.info(f"Created Schedule: {repr_(new_schedule)}")
         return new_schedule
@@ -151,7 +151,7 @@ class CSES:
         return {
             'version': self.version,
             'subjects': [subject.model_dump() for subject in self.subjects.values()],
-            'schedules': [schedule.model_dump() for schedule in self.schedules.data],
+            'schedules': [schedule.model_dump() for schedule in self.schedules],
         }
 
     def __eq__(self, other):

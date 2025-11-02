@@ -6,8 +6,10 @@ import re
 import logging
 import reprlib
 from sys import stderr
+from typing import Union
 
-import yaml
+import yaml  # type: ignore [import]
+
 
 logging.basicConfig(level=logging.DEBUG,
                     format="[{asctime} - {module}.{funcName}:{lineno}] \t{levelname}:\t {message}",
@@ -16,10 +18,11 @@ logging.basicConfig(level=logging.DEBUG,
 log = logging.getLogger(__name__)
 log.info(f"Loaded logger: {log!r}")
 
-repr_ = reprlib.Repr(
-    maxlevel=3, maxtuple=3, maxlist=3, maxarray=3, maxdict=3, maxset=3, maxfrozenset=3, maxdeque=3,
-    maxstring=30, maxlong=50, maxother=30, fillvalue=' ... ', indent=None
-).repr
+_repr_obj = reprlib.Repr()
+_repr_obj.maxlevel = _repr_obj.maxtuple = _repr_obj.maxlist = _repr_obj.maxarray = (
+    _repr_obj).maxdict = _repr_obj.maxset = _repr_obj.maxfrozenset = _repr_obj.maxdeque = 3
+_repr_obj.maxstring, _repr_obj.maxlong, _repr_obj.maxother = 30, 50, 30
+repr_ = _repr_obj.repr
 
 
 def week_num(start_day: datetime.date, day: datetime.date) -> int:
@@ -45,12 +48,12 @@ def week_num(start_day: datetime.date, day: datetime.date) -> int:
     return res
 
 
-def ensure_time(any_time: str | int | datetime.time) -> datetime.time:
+def ensure_time(any_time: Union[str, int, datetime.time]) -> datetime.time:
     """
     将时间字符串/整数值转换为 ``datetime.time`` 对象。
 
     Args:
-        any_time (str | int | datetime.time): 时间字符串，格式为 ``HH:MM:SS`` 或一个表示一天中经过的秒数的整数。
+        any_time (Union[str, int, datetime.time]): 时间字符串，格式为 ``HH:MM:SS`` 或一个表示一天中经过的秒数的整数。
 
     Returns:
         datetime.time: 对应的时间对象
@@ -67,7 +70,7 @@ def ensure_time(any_time: str | int | datetime.time) -> datetime.time:
         if not (matched := pattern_for_str.match(any_time)):
             raise ValueError(f"Invalid time format for CSES format: {any_time!r}")
         else:
-            res =  datetime.time(*map(int, matched.groups()))
+            res = datetime.time(*map(int, matched.groups()))  # type: ignore
 
     elif isinstance(any_time, int):  # 将秒数转换为时间对象
         res = datetime.time(any_time // 3600, (any_time // 60) % 60, any_time % 60)
@@ -101,6 +104,7 @@ class CustomizeDumper(yaml.Dumper):
     """
     禁用PyYAML的别名功能，确保每个对象都被序列化。这样就不会出现 ``&id001`` 等类似的引用。
     """
+
     def ignore_aliases(self, data):
         return True
 
