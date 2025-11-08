@@ -9,7 +9,7 @@ from collections import UserList
 from collections.abc import Sequence
 from typing import Optional, Literal, Annotated  # pyright: ignore
 
-from pydantic import BaseModel, ValidationError, BeforeValidator, field_serializer
+from pydantic import BaseModel, BeforeValidator, field_serializer
 
 import cses.utils as utils
 

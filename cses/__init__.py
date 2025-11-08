@@ -2,6 +2,7 @@
 import datetime
 import os
 
+import pydantic
 import yaml  # type: ignore [import]
 
 import cses.structures as st
@@ -67,7 +68,7 @@ class CSES:
         try:
             log.debug(f"Processing subjects: {repr_(data['subjects'])}")
             new_schedule.subjects = {s['name']: st.Subject(**s) for s in data['subjects']}
-        except st.ValidationError as e:
+        except pydantic.ValidationError as e:
             raise err.ParseError(f'科目数据有误: {data["subjects"]}') from e
 
         # 课程处理&检查
@@ -95,7 +96,7 @@ class CSES:
                 for day in schedules
             ])
             log.debug(f"Built schedules: {repr_(new_schedule.schedules)}")
-        except st.ValidationError as e:
+        except pydantic.ValidationError as e:
             raise err.ParseError(f'课程数据有误: {data["schedules"]}') from e
 
         log.info(f"Created Schedule: {repr_(new_schedule)}")
