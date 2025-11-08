@@ -7,7 +7,7 @@
 import datetime
 from collections import UserList
 from collections.abc import Sequence
-from typing import Optional, Literal, Annotated, Union
+from typing import Optional, Literal, Annotated  # pyright: ignore
 
 from pydantic import BaseModel, ValidationError, BeforeValidator, field_serializer
 
