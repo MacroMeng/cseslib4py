@@ -11,10 +11,15 @@ from typing import Union
 import yaml  # type: ignore [import]
 
 
-logging.basicConfig(level=logging.DEBUG,
-                    format="[{asctime} - {module}.{funcName}:{lineno}] \t{levelname}:\t {message}",
-                    style="{",
-                    stream=stderr)
+DEBUG = False
+
+if DEBUG:
+    logging.basicConfig(level=logging.DEBUG,
+                        format="[{asctime} - {module}.{funcName}:{lineno}] \t{levelname}:\t {message}",
+                        style="{",
+                        stream=stderr)
+else:
+    logging.basicConfig(level=logging.WARNING)
 log = logging.getLogger(__name__)
 log.info(f"Loaded logger: {log!r}")
 
