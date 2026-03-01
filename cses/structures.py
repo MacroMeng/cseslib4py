@@ -98,7 +98,7 @@ class SingleDaySchedule(BaseModel):
 
     def is_enabled_on_week(self, week: int) -> bool:
         """
-        判断课程是否在指定的日期上启用。
+        判断课程是否在指定的周次上启用。
 
         Args:
             week (int): 要检查的周次序号

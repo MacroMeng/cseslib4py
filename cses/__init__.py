@@ -45,6 +45,36 @@ class CSES:
         self.subjects = {}
         self.schedules = st.Schedule([])
 
+    def today_schedule(self, start_day: datetime.date, day: datetime.date | None = None) -> st.SingleDaySchedule:
+        """
+        获取当前日期/指定日期的课程安排。
+
+        Args:
+            start_day (datetime.date): 课程开始的日期，用于计算周次。
+            day (datetime.date, optional): 要获取的日期，默认是当前日期。
+
+        Returns:
+            SingleDaySchedule: 当前日期/指定日期的课程安排。
+
+        Raises:
+            CSESError: 如果在指定日期没有找到对应的课程安排。
+        """
+        if day is None:
+            day = datetime.date.today()
+
+        for schedule in self.schedules:
+            if schedule.enable_day == day.weekday() + 1:
+                # 相同的星期，判断周数
+                if schedule.weeks == 'all':
+                    return schedule  # 适用于所有周
+                else:
+                    if schedule.is_enabled_on_day(start_day, day):
+                        return schedule
+                    else:
+                        continue
+
+        raise err.CSESError(f'在日期 {day} 没有找到对应的课程安排。')
+
     @classmethod
     def from_str(cls, content: str) -> 'CSES':
         """
