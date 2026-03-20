@@ -6,7 +6,7 @@
 
 > [!WARNING]
 >
-> [CSES](https://github.com/SmartTeach/CSES) 原仓库的 API 版本已经更新到 2。您现在正在支持版本 2 的分支上。
+> [CSES](https://github.com/SmartTeachCN/CSES) 原仓库的 API 版本已经更新到 2。您现在正在支持版本 2 的分支上。
 
 > [!IMPORTANT]
 >
