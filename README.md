@@ -6,7 +6,7 @@
 
 > [!WARNING]
 > 
-> [CSES](https://github.com/SmartTeach/CSES) 原仓库的 API 版本已经更新到 2。目前，`cseslib4py` 的主分支 `main` 还没有支持版本 2。
+> [CSES](https://github.com/SmartTeachCN/CSES) 原仓库的 API 版本已经更新到 2。目前，`cseslib4py` 的主分支 `main` 还没有支持版本 2。
 > 
 > 切换到 `cses_v2` 分支来查看支持版本 2 解析的 `cseslib4py` 套件。新分支稳定后，会并入主分支。
 
