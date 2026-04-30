@@ -90,7 +90,8 @@ def ensure_time(any_time: Union[str, int, datetime.time]) -> datetime.time:
     return res
 
 
-def serialize_time(dumper: yaml.representer.BaseRepresenter, any_time: datetime.time) -> yaml.nodes.ScalarNode:
+def serialize_time(dumper: yaml.representer.BaseRepresenter,  # ty: ignore [possibly-missing-submodule]
+                   any_time: datetime.time) -> yaml.nodes.ScalarNode:
     """
     适用于 ``datetime.time`` 对象的PyYAML钩子。
 
