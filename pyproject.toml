@@ -11,25 +11,44 @@ authors = [
 description = "CSES access framework for Python, refactored by MacrosMeng."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
     "pyyaml==6.0.3",
-    "pydantic==2.12.3"
+    "pydantic==2.13.3"
 ]
 
-[project.optional-dependencies]
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[project.urls]
+"Homepage" = "https://github.com/MacroMeng/cseslib4py"
+"Bug Reports" = "https://github.com/MacroMeng/cseslib4py/issues"
+"Source" = "https://github.com/MacroMeng/cseslib4py"
+"Documentation" = "https://cseslib4py.readthedocs.io/"
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cses*"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.12",
+    "ty>=0.0.33",
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0",
+    "blue>=0.9.1",
+]
 docs = [
     "alabaster==1.0.0",
     "babel==2.17.0",
@@ -55,18 +74,6 @@ docs = [
     "sphinxcontrib-qthelp==2.0.0",
     "sphinxcontrib-serializinghtml==2.0.0",
 ]
-tests = [
-    "pytest==8.4.2",
-    "pytest-cov==7.0.0"
-]
 
-[project.urls]
-"Homepage" = "https://github.com/MacroMeng/cseslib4py"
-"Bug Reports" = "https://github.com/MacroMeng/cseslib4py/issues"
-"Source" = "https://github.com/MacroMeng/cseslib4py"
-"Documentation" = "https://cseslib4py.readthedocs.io/"
-
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["cses*"]
+[tool.black]
+line-length = 119

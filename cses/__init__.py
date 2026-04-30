@@ -24,9 +24,9 @@ class CSES:
         - ``subjects``: 科目列表，每个元素是一个 ``Subject`` 对象。
 
     Examples:
-        >>> c = CSES.from_file('../cses_example.yaml')
-        >>> c.version  # 只会为 1
-        1
+        >>> c = CSES.from_file('../examples/cses_example_v2.yaml')
+        >>> c.version
+        2
         >>> c.subjects  # doctest: +NORMALIZE_WHITESPACE
         {'数学': Subject(name='数学', simplified_name='数', teacher='李梅', room='101'),
          '语文': Subject(name='语文', simplified_name='语', teacher='王芳', room='102'),
@@ -59,21 +59,7 @@ class CSES:
         Raises:
             CSESError: 如果在指定日期没有找到对应的课程安排。
         """
-        if day is None:
-            day = datetime.date.today()
-
-        for schedule in self.schedules:
-            if schedule.enable_day == day.weekday() + 1:
-                # 相同的星期，判断周数
-                if schedule.weeks == 'all':
-                    return schedule  # 适用于所有周
-                else:
-                    if schedule.is_enabled_on_day(start_day, day):
-                        return schedule
-                    else:
-                        continue
-
-        raise err.CSESError(f'在日期 {day} 没有找到对应的课程安排。')
+        raise NotImplementedError
 
     @classmethod
     def from_str(cls, content: str) -> 'CSES':

@@ -1,5 +1,5 @@
 """
-本文档是 cses 包中 structures.py 文件的文档。此包只包括 CSES v1 数据结构。
+本文档是 cses 包中 structures.py 文件的文档。此包只包括 CSES v2 数据结构。
 该文件定义了课程相关的数据结构，包括科目、课程、周次类型和单日课程安排。
 
 .. caution:: 该模块中的数据结构仅用于表示课程结构（与其附属工具），不包含实际的读取/写入功能。
@@ -9,7 +9,7 @@ from collections import UserList
 from collections.abc import Sequence
 from typing import Optional, Literal, Annotated  # pyright: ignore
 
-from pydantic import BaseModel, BeforeValidator, field_serializer
+from pydantic import BaseModel, BeforeValidator, field_serializer, field_validator
 
 import cses.utils as utils
 from cses.errors import ValidationError
@@ -77,25 +77,21 @@ class SingleDaySchedule(BaseModel):
     单日课程安排。
 
     Args:
-        enable_day (int): 课程安排的星期（如 1 表示星期一）
+        enable_day (tuple[int, ...]): 课程安排的星期（如 1 表示星期一）
         classes (list[Lesson]): 课程列表，每个课程包含科目、开始时间和结束时间
         name (str): 课程安排名称（如 "星期一"）
-        weeks (WeekType): 周次类型，指定课程适用于哪些周次
 
     Examples:
-        >>> s = SingleDaySchedule(enable_day=1, classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
-                                  end_time=datetime.time(8, 45, 0))], name='星期一', weeks='all')
+        >>> s = SingleDaySchedule(enable_day=(1, 8), classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
+                                  end_time=datetime.time(8, 45, 0))], name='星期一')
         >>> s.enable_day
-        1
+        (1, 8)
         >>> s.name
         '星期一'
-        >>> s.weeks
-        'all'
     """
-    enable_day: Literal[1, 2, 3, 4, 5, 6, 7]
+    enable_day: tuple[int, ...]
     classes: list[Lesson]
     name: str
-    weeks: Literal['all', 'odd', 'even']
 
     def is_enabled_on_week(self, week: int) -> bool:
         """
@@ -108,8 +104,8 @@ class SingleDaySchedule(BaseModel):
             bool: 如果课程在指定周上启用，则返回 True；否则返回 False
 
         Examples:
-            >>> s = SingleDaySchedule(enable_day=1, classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
-                                      end_time=datetime.time(8, 45, 0))], name='星期一', weeks='odd')
+            >>> s = SingleDaySchedule(enable_day=(1, 8), classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
+                                      end_time=datetime.time(8, 45, 0))], name='星期一')
             >>> s.is_enabled_on_week(3)
             True
             >>> s.is_enabled_on_week(6)
@@ -117,11 +113,7 @@ class SingleDaySchedule(BaseModel):
             >>> s.is_enabled_on_week(11)
             True
         """
-        return {
-            'all': True,  # 适用于所有周 -> 永久启用
-            'odd': week % 2 == 1,  # 单周
-            'even': week % 2 == 0  # 双周
-        }[self.weeks]
+        raise NotImplementedError
 
     def is_enabled_on_day(self, start_day: datetime.date, day: datetime.date) -> bool:
         """
@@ -135,8 +127,8 @@ class SingleDaySchedule(BaseModel):
             bool: 如果课程在指定日期上启用，则返回 True；否则返回 False
 
         Examples:
-            >>> s = SingleDaySchedule(enable_day=1, classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
-                                      end_time=datetime.time(8, 45, 0))], name='星期一', weeks='odd')
+            >>> s = SingleDaySchedule(enable_day=(1, 8), classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
+                                      end_time=datetime.time(8, 45, 0))], name='星期一')
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 4))
             True
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 16))
@@ -144,7 +136,7 @@ class SingleDaySchedule(BaseModel):
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 24))
             False
         """
-        return self.is_enabled_on_week(utils.week_num(start_day, day))
+        raise NotImplementedError
 
 
 class Schedule(UserList[SingleDaySchedule]):
@@ -157,42 +149,78 @@ class Schedule(UserList[SingleDaySchedule]):
 
     Examples:
         >>> s = Schedule([
-        ...     SingleDaySchedule(enable_day=1, classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0),
-        ...                       end_time=datetime.time(8, 45, 0))], name='星期一', weeks='odd'),
-        ...     SingleDaySchedule(enable_day=2, classes=[Lesson(subject='数学', start_time=datetime.time(9, 0, 0),
-        ...                       end_time=datetime.time(9, 45, 0))], name='星期二', weeks='even')
+        ...     SingleDaySchedule(enable_day=(1, 8), classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0),
+        ...                       end_time=datetime.time(8, 45, 0))], name='星期一'),
+        ...     SingleDaySchedule(enable_day=(2, 8), classes=[Lesson(subject='数学', start_time=datetime.time(9, 0, 0),
+        ...                       end_time=datetime.time(9, 45, 0))], name='星期二')
         ... ])
         >>> s[0].enable_day
-        1
+        (1, 8)
     """
     def __init__(self, args: Sequence[SingleDaySchedule]):
         result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
         super().__init__(result)
 
-    def by_weekday(self, index: Literal[1, 2, 3, 4, 5, 6, 7]) -> SingleDaySchedule:
-        """
-        根据星期获取对应的课程安排。若索引合法，其效果相当于 ``schedule[index - 1]`` 。
 
-        Args:
-            index (Literal[1, 2, 3, 4, 5, 6, 7]): 周次索引，从 1 开始（如访问星期一的课表，索引为 1）
+class CycleSpan(BaseModel):
+    """
+    课程周期的活动时间。
 
-        Returns:
-            SingleDaySchedule: 对应星期的课程安排
+    Args:
+        activity (Literal["work", "rest"]): 活动类型，"work" 表示上课，"rest" 表示休息
+        count (int): 活动时间的天数（1-work_count 的整数）
 
-        Raises:
-            IndexError: 如果索引超出范围 [1, 7]
+    Examples:
+        >>> s1 = CycleSpan(activity="work", count=3)  # 代表 5 天的上课时间
+        >>> s2 = CycleSpan(activity="rest", count=2)  # 代表 2 天的休息时间
+    """
+    activity: Literal["work", "rest"]
+    count: int  # 1-work_count 的整数
 
-        Examples:
-            >>> s = Schedule([
-            ...     SingleDaySchedule(enable_day=1, classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0),
-            ...                       end_time=datetime.time(8, 45, 0))], name='星期一', weeks='odd'),
-            ...     SingleDaySchedule(enable_day=2, classes=[Lesson(subject='数学', start_time=datetime.time(9, 0, 0),
-            ...                       end_time=datetime.time(9, 45, 0))], name='星期二', weeks='even')
-            ... ])
-            >>> s.by_weekday(1).enable_day
-            1
-        """
-        if index < 1 or index > 7:
-            utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week')
-            raise IndexError(f'Index {index} out of range [1, 7]')
-        return self.data[index - 1]
+    @field_validator('count')
+    @classmethod
+    def validate_gt_1(cls, v: int) -> int:
+        if v <= 1:
+            raise ValidationError(f'count 必须 > 1，当前值为：{v}')
+        else:
+            return v
+
+
+class CycleConfig(BaseModel):
+    """
+    课程周期的配置。
+
+    Args:
+        work_count (int): 大于 1 的整数，上课的总天数
+        rest_count (int): 大于 1 的整数，休息的总天数
+        spans (tuple[CycleSpan, ...]): 课程周期的活动时间配置，每个元素为一个 ``CycleSpan`` 实例
+
+    若需按照以下列出的时间安排创建 ``CycleConfig`` 对象：
+
+    - 上课 6 天，休息 1 天（代表一个小周）
+    - 上课 5 天，休息 2 天（代表一个大周）
+
+    则应使用如下的代码:
+        >>> c = CycleConfig(work_count=11, rest_count=3,
+                            spans=(CycleSpan(activity="work", count=6),
+                                   CycleSpan(activity="rest", count=1),
+                                   CycleSpan(activity="work", count=5),
+                                   CycleSpan(activity="rest", count=2)))
+    """
+    work_count: int  # 大于 1 的整数，上课的总天数
+    rest_count: int  # 大于 1 的整数，休息的总天数
+    spans: tuple[CycleSpan, ...]
+
+    @field_validator("work_count", "rest_count")
+    @classmethod
+    def validate_gt_1(cls, v: int) -> int:
+        if v <= 1:
+            raise ValidationError(f'work_count / rest_count 必须 > 1，当前值为：{v}')
+        else:
+            return v
+
+
+class Configuration(BaseModel):
+    name: str
+    description: Optional[str]
+    cycle: CycleConfig
