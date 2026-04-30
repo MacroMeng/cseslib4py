@@ -2,13 +2,12 @@
 import datetime
 import os
 
-from _typeshed import SupportsRead, SupportsWrite
 import yaml  # type: ignore [import]
 
 import cses.structures as st
 import cses.errors as err
 from cses.structures.v2 import SingleDaySchedule
-from cses.utils import log, repr_
+from cses.utils import log, repr_, SupportsRead, SupportsWrite
 from cses import utils
 
 yaml.add_representer(datetime.time, utils.serialize_time)
@@ -85,7 +84,7 @@ class CSES:
         new_schedule._cses = used_cls(**data)
         new_schedule.subjects = new_schedule._cses.subjects
         new_schedule.schedules = new_schedule._cses.schedules
-        if used_cls is st.v2.CSESStructV2:
+        if isinstance(new_schedule._cses, st.v2.CSESStructV2):
             new_schedule.configuration = new_schedule._cses.configuration
 
         log.info(f"Created Schedule: {repr_(new_schedule)}")

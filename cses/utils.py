@@ -6,7 +6,7 @@ import re
 import logging
 import reprlib
 from sys import stderr
-from typing import Union
+from typing import Union, Protocol
 
 import yaml  # type: ignore [import]
 
@@ -28,6 +28,18 @@ _repr_obj.maxlevel = _repr_obj.maxtuple = _repr_obj.maxlist = _repr_obj.maxarray
     _repr_obj).maxdict = _repr_obj.maxset = _repr_obj.maxfrozenset = _repr_obj.maxdeque = 3
 _repr_obj.maxstring, _repr_obj.maxlong, _repr_obj.maxother = 30, 50, 30
 repr_ = _repr_obj.repr
+
+
+class SupportsRead(Protocol):
+    """支持读取文件内容的协议"""
+    def read(self) -> str:
+        """读取文件内容"""
+
+
+class SupportsWrite(Protocol):
+    """支持写入文件内容的协议"""
+    def write(self, content: str) -> None:
+        """写入文件内容"""
 
 
 def week_num(start_day: datetime.date, day: datetime.date) -> int:
