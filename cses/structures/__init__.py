@@ -1,0 +1,1 @@
+from cses.structures import v1, v2
