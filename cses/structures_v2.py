@@ -224,3 +224,10 @@ class Configuration(BaseModel):
     name: str
     description: Optional[str]
     cycle: CycleConfig
+
+
+class CSESStructV2(BaseModel):
+    version: Literal[2]
+    configuration: Configuration
+    subjects: list[Subject]
+    schedules: Schedule

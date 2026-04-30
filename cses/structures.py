@@ -196,3 +196,9 @@ class Schedule(UserList[SingleDaySchedule]):
             utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week')
             raise IndexError(f'Index {index} out of range [1, 7]')
         return self.data[index - 1]
+
+
+class CSESStructV1(BaseModel):
+    version: Literal[1]
+    subjects: list[Subject]
+    schedules: Schedule
