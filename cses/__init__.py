@@ -1,6 +1,7 @@
 """使用 ``CSES`` 类可以表示、解析一个 CSES 课程文件。"""
 import datetime
 import os
+from typing import MutableSequence
 
 import yaml  # type: ignore [import]
 
@@ -40,10 +41,11 @@ class CSES:
 
         .. warning:: 不应该直接调用 ``CSES()`` 构造函数， 而是应该使用 ``CSES.from_str()`` 工厂方法。
         """
-        self._cses = None
+        self._cses: st.v1.CSESStructV1 | st.v2.CSESStructV2 | None = None
         self.version = -1
-        self.subjects = {}
-        self.schedules = []
+        self.subjects: MutableSequence = []
+        self.schedules: MutableSequence = []
+        self.configuration: st.v2.Configuration | None = None
 
     def today_schedule(self, start_day: datetime.date, day: datetime.date | None = None) -> 'SingleDaySchedule':
         """
@@ -159,6 +161,8 @@ class CSES:
         Returns:
             dict: 当前 CSES 课表对象的字典表示。
         """
+        if self._cses is None:
+            raise err.CSESError(f'未初始化 CSES 课表对象，无法生成字典表示。')
         return self._cses.model_dump()
 
     def __eq__(self, other):
