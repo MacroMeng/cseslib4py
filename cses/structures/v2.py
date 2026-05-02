@@ -7,9 +7,10 @@
 import datetime
 from collections import UserList
 from collections.abc import Sequence
-from typing import Optional, Literal, Annotated  # pyright: ignore
+from typing import Optional, Literal, Annotated, Any  # pyright: ignore
 
-from pydantic import BaseModel, BeforeValidator, field_serializer, field_validator
+from pydantic import BaseModel, BeforeValidator, field_serializer, field_validator, GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 
 import cses.utils as utils
 from cses.errors import ValidationError
@@ -23,23 +24,23 @@ class Subject(BaseModel):
         name (str): 科目名称，如“语文”
         simplified_name (str): 科目简化名称，如“语”
         teacher (str): 教师姓名
-        room (str): 教室名称
+        location (str): 教室名称
 
     Examples:
-        >>> s = Subject(name='语文', simplified_name='语', teacher='张三', room='A101')
+        >>> s = Subject(name='语文', simplified_name='语', teacher='张三', location='A101')
         >>> s.name
         '语文'
         >>> s.simplified_name
         '语'
         >>> s.teacher
         '张三'
-        >>> s.room
+        >>> s.location
         'A101'
     """
     name: str
     simplified_name: Optional[str] = None
     teacher: Optional[str] = None
-    room: Optional[str] = None
+    location: Optional[str] = None
 
 
 class Lesson(BaseModel):
@@ -127,8 +128,11 @@ class SingleDaySchedule(BaseModel):
             bool: 如果课程在指定日期上启用，则返回 True；否则返回 False
 
         Examples:
-            >>> s = SingleDaySchedule(enable_day=(1, 8), classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
-                                      end_time=datetime.time(8, 45, 0))], name='星期一')
+            >>> s = SingleDaySchedule(enable_day=(1, 8),
+                                      classes=[Lesson(subject='语文',
+                                                      start_time=datetime.time(8, 0, 0),
+                                                      end_time=datetime.time(8, 45, 0))],
+                                      name='星期一')
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 4))
             True
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 16))
@@ -158,8 +162,13 @@ class Schedule(UserList[SingleDaySchedule]):
         (1, 8)
     """
     def __init__(self, args: Sequence[SingleDaySchedule]):
-        result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
-        super().__init__(result)
+        super().__init__(args)
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+            cls, _: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(list))
 
 
 class CycleSpan(BaseModel):
@@ -176,14 +185,6 @@ class CycleSpan(BaseModel):
     """
     activity: Literal["work", "rest"]
     count: int  # 1-work_count 的整数
-
-    @field_validator('count')
-    @classmethod
-    def validate_gt_1(cls, v: int) -> int:
-        if v <= 1:
-            raise ValidationError(f'count 必须 > 1，当前值为：{v}')
-        else:
-            return v
 
 
 class CycleConfig(BaseModel):

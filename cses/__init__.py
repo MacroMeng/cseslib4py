@@ -25,14 +25,22 @@ class CSES:
         - ``subjects``: 科目列表，每个元素是一个 ``Subject`` 对象。
 
     Examples:
-        >>> c = CSES.load_from('../examples/cses_example_v2.yaml')
-        >>> c.version
-        2
-        >>> c.subjects  # doctest: +NORMALIZE_WHITESPACE
+        >>> c1 = CSES.load_from('../examples/cses_example.yaml')
+        >>> c1.version
+        1
+        >>> c1.subjects
         {'数学': Subject(name='数学', simplified_name='数', teacher='李梅', room='101'),
          '语文': Subject(name='语文', simplified_name='语', teacher='王芳', room='102'),
          '英语': Subject(name='英语', simplified_name='英', teacher='张伟', room='103'),
          '物理': Subject(name='物理', simplified_name='物', teacher='赵军', room='104')}
+        >>> c2 = CSES.load_from('../examples/cses_example_v2.yaml')
+        >>> c2.version
+        2
+        >>> c2.subjects  # doctest: +NORMALIZE_WHITESPACE
+        [Subject(name='数学', simplified_name='数', teacher='李梅', location='101'),
+         Subject(name='语文', simplified_name='语', teacher='王芳', location='102'),
+         Subject(name='英语', simplified_name='英', teacher='张伟', location='103'),
+         Subject(name='物理', simplified_name='物', teacher='赵军', location='104')]
 
     """
     def __init__(self):
@@ -93,7 +101,7 @@ class CSES:
         return new_schedule
 
     @classmethod
-    def load(cls, f: SupportsRead[str]) -> 'CSES':
+    def load(cls, f: SupportsRead) -> 'CSES':
         """
         从文件对象 ``f`` 中读取并新建一个 CSES 课表对象。
 
@@ -132,7 +140,7 @@ class CSES:
         log.debug(f"Generated YAML: {repr_(res)}")
         return res
 
-    def dump(self, fp: SupportsWrite[str]) -> None:
+    def dump(self, fp: SupportsWrite) -> None:
         """
         将当前 CSES 课表对象存入指定的支持写入的对象。
 
@@ -164,6 +172,39 @@ class CSES:
         if self._cses is None:
             raise err.CSESError(f'未初始化 CSES 课表对象，无法生成字典表示。')
         return self._cses.model_dump()
+
+    @classmethod
+    def _load_v1(cls, content: str) -> 'CSES':
+        """"""
+
+    @classmethod
+    def _load_v2(cls, content: str) -> 'CSES':
+        """
+        从 ``content`` 新建一个 CSES v2 课表对象。
+
+        Args:
+            content (str): CSES 课程文件的内容。
+        """
+
+        data = yaml.safe_load(content)
+        new_schedule = cls()
+        log.info(f"Loading CSES schedules {repr_(content)}")
+
+        # 版本处理&检查
+        log.debug(f"Checking version: {data['version']}")
+        new_schedule.version = data['version']
+        if new_schedule.version != 2:
+            raise err.VersionError(f'不支持的版本: {new_schedule.version}')
+
+        new_schedule._cses = st.v2.CSESStructV2(**data)
+        new_schedule.subjects = new_schedule._cses.subjects
+        new_schedule.schedules = new_schedule._cses.schedules
+        if isinstance(new_schedule._cses, st.v2.CSESStructV2):
+            new_schedule.configuration = new_schedule._cses.configuration
+
+        log.info(f"Created Schedule: {repr_(new_schedule)}")
+        return new_schedule
+
 
     def __eq__(self, other):
         if isinstance(other, type(self)):

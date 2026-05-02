@@ -7,9 +7,10 @@
 import datetime
 from collections import UserList
 from collections.abc import Sequence
-from typing import Optional, Literal, Annotated  # pyright: ignore
+from typing import Optional, Literal, Annotated, Any  # pyright: ignore
 
-from pydantic import BaseModel, BeforeValidator, field_serializer
+from pydantic import BaseModel, BeforeValidator, field_serializer, GetCoreSchemaHandler
+from pydantic_core import CoreSchema, core_schema
 
 import cses.utils as utils
 from cses.errors import ValidationError
@@ -196,6 +197,12 @@ class Schedule(UserList[SingleDaySchedule]):
             utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week')
             raise IndexError(f'Index {index} out of range [1, 7]')
         return self.data[index - 1]
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+            cls, _: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(list))
 
 
 class CSESStructV1(BaseModel):
