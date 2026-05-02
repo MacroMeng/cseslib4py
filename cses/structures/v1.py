@@ -225,6 +225,14 @@ class Schedule(UserList[SingleDaySchedule]):
 
 
 class CSESStructV1(BaseModel):
+    """
+    课程表的结构。
+
+    Args:
+        version (Literal[1]): 课程表的版本号，必须为 ``1``
+        subjects (list[Subject]): 课程表的课程列表
+        schedules (Schedule): 课程表的课程安排
+    """
     version: Literal[1]
     subjects: list[Subject]
     schedules: Schedule
