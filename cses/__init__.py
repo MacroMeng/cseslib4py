@@ -28,11 +28,11 @@ class CSES:
         >>> c1 = CSES.load_from('../examples/cses_example.yaml')
         >>> c1.version
         1
-        >>> c1.subjects
-        {'数学': Subject(name='数学', simplified_name='数', teacher='李梅', room='101'),
-         '语文': Subject(name='语文', simplified_name='语', teacher='王芳', room='102'),
-         '英语': Subject(name='英语', simplified_name='英', teacher='张伟', room='103'),
-         '物理': Subject(name='物理', simplified_name='物', teacher='赵军', room='104')}
+        >>> c1.subjects  # doctest: +NORMALIZE_WHITESPACE
+        [Subject(name='数学', simplified_name='数', teacher='李梅', room='101'),
+         Subject(name='语文', simplified_name='语', teacher='王芳', room='102'),
+         Subject(name='英语', simplified_name='英', teacher='张伟', room='103'),
+         Subject(name='物理', simplified_name='物', teacher='赵军', room='104')]
         >>> c2 = CSES.load_from('../examples/cses_example_v2.yaml')
         >>> c2.version
         2
@@ -87,13 +87,14 @@ class CSES:
         # 版本处理&检查
         log.debug(f"Checking version: {data['version']}")
         new_schedule.version = data['version']
-        if new_schedule.version not in (1, 2):
+        if new_schedule.version not in range(1, 2+1):
             raise err.VersionError(f'不支持的版本: {new_schedule.version}')
 
+        used_module = st.v1 if new_schedule.version == 1 else st.v2
         used_cls = st.v1.CSESStructV1 if new_schedule.version == 1 else st.v2.CSESStructV2
         new_schedule._cses = used_cls(**data)
         new_schedule.subjects = new_schedule._cses.subjects
-        new_schedule.schedules = new_schedule._cses.schedules
+        new_schedule.schedules = [used_module.SingleDaySchedule(**schedule) for schedule in new_schedule._cses.schedules]
         if isinstance(new_schedule._cses, st.v2.CSESStructV2):
             new_schedule.configuration = new_schedule._cses.configuration
 
@@ -175,7 +176,28 @@ class CSES:
 
     @classmethod
     def _load_v1(cls, content: str) -> 'CSES':
-        """"""
+        """
+        从 ``content`` 新建一个 CSES v1 课表对象。
+
+        Args:
+            content (str): CSES 课程文件的内容。
+        """
+        data = yaml.safe_load(content)
+        new_schedule = cls()
+        log.info(f"Loading CSES schedules {repr_(content)}")
+
+        # 版本处理&检查
+        log.debug(f"Checking version: {data['version']}")
+        new_schedule.version = data['version']
+        if new_schedule.version != 1:
+            raise err.VersionError(f'不支持的版本: {new_schedule.version}')
+
+        new_schedule._cses = st.v1.CSESStructV1(**data)
+        new_schedule.subjects = new_schedule._cses.subjects
+        new_schedule.schedules = [st.v1.SingleDaySchedule(**schedule) for schedule in new_schedule._cses.schedules]
+
+        log.info(f"Created Schedule: {repr_(new_schedule)}")
+        return new_schedule
 
     @classmethod
     def _load_v2(cls, content: str) -> 'CSES':
@@ -198,13 +220,12 @@ class CSES:
 
         new_schedule._cses = st.v2.CSESStructV2(**data)
         new_schedule.subjects = new_schedule._cses.subjects
-        new_schedule.schedules = new_schedule._cses.schedules
+        new_schedule.schedules = [st.v2.SingleDaySchedule(**schedule) for schedule in new_schedule._cses.schedules]
         if isinstance(new_schedule._cses, st.v2.CSESStructV2):
             new_schedule.configuration = new_schedule._cses.configuration
 
         log.info(f"Created Schedule: {repr_(new_schedule)}")
         return new_schedule
-
 
     def __eq__(self, other):
         if isinstance(other, type(self)):

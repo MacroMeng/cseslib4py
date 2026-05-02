@@ -167,7 +167,10 @@ class Schedule(UserList[SingleDaySchedule]):
         1
     """
     def __init__(self, args: Sequence[SingleDaySchedule]):
-        result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
+        try:
+            result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
+        except AttributeError:
+            result = sorted(args, key=lambda arg: arg['enable_day'])
         super().__init__(result)
 
     def by_weekday(self, index: Literal[1, 2, 3, 4, 5, 6, 7]) -> SingleDaySchedule:
