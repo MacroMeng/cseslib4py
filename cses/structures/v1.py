@@ -9,11 +9,15 @@ from collections import UserList
 from collections.abc import Sequence
 from typing import Optional, Literal, Annotated, Any  # pyright: ignore
 
-from pydantic import BaseModel, BeforeValidator, field_serializer, GetCoreSchemaHandler
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    field_serializer,
+    GetCoreSchemaHandler,
+)
 from pydantic_core import CoreSchema, core_schema
 
 import cses.utils as utils
-from cses.errors import ValidationError
 
 
 class Subject(BaseModel):
@@ -37,6 +41,7 @@ class Subject(BaseModel):
         >>> s.room
         'A101'
     """
+
     name: str
     simplified_name: Optional[str] = None
     teacher: Optional[str] = None
@@ -64,13 +69,14 @@ class Lesson(BaseModel):
         >>> l.end_time
         datetime.time(8, 45)
     """
+
     subject: str
     start_time: Annotated[datetime.time, BeforeValidator(utils.ensure_time)]
     end_time: Annotated[datetime.time, BeforeValidator(utils.ensure_time)]
 
-    @field_serializer("start_time", "end_time")
+    @field_serializer('start_time', 'end_time')
     def serialize_time(self, time: datetime.time) -> str:
-        return time.strftime("%H:%M:%S")
+        return time.strftime('%H:%M:%S')
 
 
 class SingleDaySchedule(BaseModel):
@@ -93,6 +99,7 @@ class SingleDaySchedule(BaseModel):
         >>> s.weeks
         'all'
     """
+
     enable_day: Literal[1, 2, 3, 4, 5, 6, 7]
     classes: list[Lesson]
     name: str
@@ -121,10 +128,12 @@ class SingleDaySchedule(BaseModel):
         return {
             'all': True,  # 适用于所有周 -> 永久启用
             'odd': week % 2 == 1,  # 单周
-            'even': week % 2 == 0  # 双周
+            'even': week % 2 == 0,  # 双周
         }[self.weeks]
 
-    def is_enabled_on_day(self, start_day: datetime.date, day: datetime.date) -> bool:
+    def is_enabled_on_day(
+        self, start_day: datetime.date, day: datetime.date
+    ) -> bool:
         """
         判断课程是否在指定的日期上启用。
 
@@ -166,14 +175,19 @@ class Schedule(UserList[SingleDaySchedule]):
         >>> s[0].enable_day
         1
     """
+
     def __init__(self, args: Sequence[SingleDaySchedule]):
         try:
-            result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
+            result = sorted(
+                args, key=lambda arg: arg.enable_day
+            )  # 按照启用日期（星期几）排序
         except AttributeError:
             result = sorted(args, key=lambda arg: arg['enable_day'])
         super().__init__(result)
 
-    def by_weekday(self, index: Literal[1, 2, 3, 4, 5, 6, 7]) -> SingleDaySchedule:
+    def by_weekday(
+        self, index: Literal[1, 2, 3, 4, 5, 6, 7]
+    ) -> SingleDaySchedule:
         """
         根据星期获取对应的课程安排。若索引合法，其效果相当于 ``schedule[index - 1]`` 。
 
@@ -197,13 +211,15 @@ class Schedule(UserList[SingleDaySchedule]):
             1
         """
         if index < 1 or index > 7:
-            utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week')
+            utils.log.warning(
+                f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week'
+            )
             raise IndexError(f'Index {index} out of range [1, 7]')
         return self.data[index - 1]
 
     @classmethod
     def __get_pydantic_core_schema__(
-            cls, _: Any, handler: GetCoreSchemaHandler
+        cls, _: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
         return core_schema.no_info_after_validator_function(cls, handler(list))
 

@@ -9,7 +9,13 @@ from collections import UserList
 from collections.abc import Sequence
 from typing import Optional, Literal, Annotated, Any  # pyright: ignore
 
-from pydantic import BaseModel, BeforeValidator, field_serializer, field_validator, GetCoreSchemaHandler
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    field_serializer,
+    field_validator,
+    GetCoreSchemaHandler,
+)
 from pydantic_core import CoreSchema, core_schema
 
 import cses.utils as utils
@@ -37,6 +43,7 @@ class Subject(BaseModel):
         >>> s.location
         'A101'
     """
+
     name: str
     simplified_name: Optional[str] = None
     teacher: Optional[str] = None
@@ -64,13 +71,14 @@ class Lesson(BaseModel):
         >>> l.end_time
         datetime.time(8, 45)
     """
+
     subject: str
     start_time: Annotated[datetime.time, BeforeValidator(utils.ensure_time)]
     end_time: Annotated[datetime.time, BeforeValidator(utils.ensure_time)]
 
-    @field_serializer("start_time", "end_time")
+    @field_serializer('start_time', 'end_time')
     def serialize_time(self, time: datetime.time) -> str:
-        return time.strftime("%H:%M:%S")
+        return time.strftime('%H:%M:%S')
 
 
 class SingleDaySchedule(BaseModel):
@@ -90,6 +98,7 @@ class SingleDaySchedule(BaseModel):
         >>> s.name
         '星期一'
     """
+
     enable_day: tuple[int, ...]
     classes: list[Lesson]
     name: str
@@ -116,7 +125,9 @@ class SingleDaySchedule(BaseModel):
         """
         raise NotImplementedError
 
-    def is_enabled_on_day(self, start_day: datetime.date, day: datetime.date) -> bool:
+    def is_enabled_on_day(
+        self, start_day: datetime.date, day: datetime.date
+    ) -> bool:
         """
         判断课程是否在指定的日期上启用。
 
@@ -161,12 +172,13 @@ class Schedule(UserList[SingleDaySchedule]):
         >>> s[0].enable_day
         (1, 8)
     """
+
     def __init__(self, args: Sequence[SingleDaySchedule]):
         super().__init__(args)
 
     @classmethod
     def __get_pydantic_core_schema__(
-            cls, _: Any, handler: GetCoreSchemaHandler
+        cls, _: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
         return core_schema.no_info_after_validator_function(cls, handler(list))
 
@@ -183,7 +195,8 @@ class CycleSpan(BaseModel):
         >>> s1 = CycleSpan(activity="work", count=3)  # 代表 5 天的上课时间
         >>> s2 = CycleSpan(activity="rest", count=2)  # 代表 2 天的休息时间
     """
-    activity: Literal["work", "rest"]
+
+    activity: Literal['work', 'rest']
     count: int  # 1-work_count 的整数
 
 
@@ -208,11 +221,12 @@ class CycleConfig(BaseModel):
                                    CycleSpan(activity="work", count=5),
                                    CycleSpan(activity="rest", count=2)))
     """
+
     work_count: int  # 大于 1 的整数，上课的总天数
     rest_count: int  # 大于 1 的整数，休息的总天数
     spans: tuple[CycleSpan, ...]
 
-    @field_validator("work_count", "rest_count")
+    @field_validator('work_count', 'rest_count')
     @classmethod
     def validate_gt_1(cls, v: int) -> int:
         if v <= 1:

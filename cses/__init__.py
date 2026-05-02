@@ -12,7 +12,7 @@ from cses.utils import log, repr_, SupportsRead, SupportsWrite
 from cses import utils
 
 yaml.add_representer(datetime.time, utils.serialize_time)
-log.info("cseslib4py initialized!")
+log.info('cseslib4py initialized!')
 
 
 class CSES:
@@ -23,6 +23,7 @@ class CSES:
         - ``schedules``: 课程安排列表，每个元素是一个 ``SingleDaySchedule`` 对象。
         - ``version``: 课程文件的版本号。目前只能为 ``1`` ，参见 CSES 官方文档与 Schema 文件。
         - ``subjects``: 科目列表，每个元素是一个 ``Subject`` 对象。
+        - ``configuration``: 课程配置，仅在 ``version`` 为 ``2`` 时不为 ``None``。
 
     Examples:
         >>> c1 = CSES.load_from('../examples/cses_example.yaml')
@@ -43,6 +44,7 @@ class CSES:
          Subject(name='物理', simplified_name='物', teacher='赵军', location='104')]
 
     """
+
     def __init__(self):
         """
         初始化一个空CSES课表。
@@ -55,7 +57,9 @@ class CSES:
         self.schedules: MutableSequence = []
         self.configuration: st.v2.Configuration | None = None
 
-    def today_schedule(self, start_day: datetime.date, day: datetime.date | None = None) -> 'SingleDaySchedule':
+    def today_schedule(
+        self, start_day: datetime.date, day: datetime.date | None = None
+    ) -> 'SingleDaySchedule':
         """
         获取当前日期/指定日期的课程安排。
 
@@ -82,23 +86,31 @@ class CSES:
 
         data = yaml.safe_load(content)
         new_schedule = cls()
-        log.info(f"Loading CSES schedules {repr_(content)}")
+        log.info(f'Loading CSES schedules {repr_(content)}')
 
         # 版本处理&检查
         log.debug(f"Checking version: {data['version']}")
         new_schedule.version = data['version']
-        if new_schedule.version not in range(1, 2+1):
+        if new_schedule.version not in range(1, 2 + 1):
             raise err.VersionError(f'不支持的版本: {new_schedule.version}')
 
         used_module = st.v1 if new_schedule.version == 1 else st.v2
-        used_cls = st.v1.CSESStructV1 if new_schedule.version == 1 else st.v2.CSESStructV2
+        used_cls = (
+            st.v1.CSESStructV1
+            if new_schedule.version == 1
+            else st.v2.CSESStructV2
+        )
         new_schedule._cses = used_cls(**data)
         new_schedule.subjects = new_schedule._cses.subjects
-        new_schedule.schedules = [used_module.SingleDaySchedule(**schedule) for schedule in new_schedule._cses.schedules]
+        # 直接使用 used_cls(**data) 会导致 new_schedule.schedules 为 list[dict[str, Any]] 类型，强制转换到 SingleDaySchedule 类型
+        new_schedule.schedules = [
+            used_module.SingleDaySchedule(**schedule)  # ty: ignore [invalid-argument-type]
+            for schedule in new_schedule._cses.schedules
+        ]
         if isinstance(new_schedule._cses, st.v2.CSESStructV2):
             new_schedule.configuration = new_schedule._cses.configuration
 
-        log.info(f"Created Schedule: {repr_(new_schedule)}")
+        log.info(f'Created Schedule: {repr_(new_schedule)}')
         return new_schedule
 
     @classmethod
@@ -132,13 +144,15 @@ class CSES:
         Returns:
             str: 当前 CSES 课表对象的 YAML 字符串表示。
         """
-        res = yaml.dump(self._gen_dict(),
-                        default_flow_style=False,
-                        sort_keys=False,
-                        allow_unicode=True,
-                        indent=2,
-                        Dumper=utils.CustomizeDumper)
-        log.debug(f"Generated YAML: {repr_(res)}")
+        res = yaml.dump(
+            self._gen_dict(),
+            default_flow_style=False,
+            sort_keys=False,
+            allow_unicode=True,
+            indent=2,
+            Dumper=utils.CustomizeDumper,
+        )
+        log.debug(f'Generated YAML: {repr_(res)}')
         return res
 
     def dump(self, fp: SupportsWrite) -> None:
@@ -161,7 +175,7 @@ class CSES:
         os.makedirs(os.path.dirname(fp), exist_ok=True)
         with open(fp, mode, encoding='utf8') as f:
             f.write(self.dumps())
-        log.info(f"Written CSES schedule file to {repr_(fp)}.")
+        log.info(f'Written CSES schedule file to {repr_(fp)}.')
 
     def _gen_dict(self) -> dict:
         """
@@ -171,61 +185,8 @@ class CSES:
             dict: 当前 CSES 课表对象的字典表示。
         """
         if self._cses is None:
-            raise err.CSESError(f'未初始化 CSES 课表对象，无法生成字典表示。')
+            raise err.CSESError('未初始化 CSES 课表对象，无法生成字典表示。')
         return self._cses.model_dump()
-
-    @classmethod
-    def _load_v1(cls, content: str) -> 'CSES':
-        """
-        从 ``content`` 新建一个 CSES v1 课表对象。
-
-        Args:
-            content (str): CSES 课程文件的内容。
-        """
-        data = yaml.safe_load(content)
-        new_schedule = cls()
-        log.info(f"Loading CSES schedules {repr_(content)}")
-
-        # 版本处理&检查
-        log.debug(f"Checking version: {data['version']}")
-        new_schedule.version = data['version']
-        if new_schedule.version != 1:
-            raise err.VersionError(f'不支持的版本: {new_schedule.version}')
-
-        new_schedule._cses = st.v1.CSESStructV1(**data)
-        new_schedule.subjects = new_schedule._cses.subjects
-        new_schedule.schedules = [st.v1.SingleDaySchedule(**schedule) for schedule in new_schedule._cses.schedules]
-
-        log.info(f"Created Schedule: {repr_(new_schedule)}")
-        return new_schedule
-
-    @classmethod
-    def _load_v2(cls, content: str) -> 'CSES':
-        """
-        从 ``content`` 新建一个 CSES v2 课表对象。
-
-        Args:
-            content (str): CSES 课程文件的内容。
-        """
-
-        data = yaml.safe_load(content)
-        new_schedule = cls()
-        log.info(f"Loading CSES schedules {repr_(content)}")
-
-        # 版本处理&检查
-        log.debug(f"Checking version: {data['version']}")
-        new_schedule.version = data['version']
-        if new_schedule.version != 2:
-            raise err.VersionError(f'不支持的版本: {new_schedule.version}')
-
-        new_schedule._cses = st.v2.CSESStructV2(**data)
-        new_schedule.subjects = new_schedule._cses.subjects
-        new_schedule.schedules = [st.v2.SingleDaySchedule(**schedule) for schedule in new_schedule._cses.schedules]
-        if isinstance(new_schedule._cses, st.v2.CSESStructV2):
-            new_schedule.configuration = new_schedule._cses.configuration
-
-        log.info(f"Created Schedule: {repr_(new_schedule)}")
-        return new_schedule
 
     def __eq__(self, other):
         if isinstance(other, type(self)):
