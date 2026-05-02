@@ -35,6 +35,7 @@ cseslib4py 文档
 
    Home <self>
    main_usage
-   structs
+   structs-v1
+   structs-v2
    err
    utils
