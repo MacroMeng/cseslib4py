@@ -5,8 +5,10 @@
 适用于 Python 的 CSES API
 
 > [!WARNING]
+> 
+> [CSES](https://github.com/SmartTeachCN/CSES) 原仓库的 API 版本已经更新到 2。目前，我们已经支持解析 CSES v2。若您在使用过程中发现任何 Bug，欢迎 [前来报告](https://github.com/MacroMeng/cseslib4py/issues) 。
 >
-> [CSES](https://github.com/SmartTeachCN/CSES) 原仓库的 API 版本已经更新到 2。您现在正在支持版本 2 的分支上。
+> 请参阅文档来了解使用 `cseslib4py` 解析 CSES v2 文件的方法。
 
 > [!IMPORTANT]
 >
