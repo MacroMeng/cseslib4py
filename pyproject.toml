@@ -83,3 +83,6 @@ docs = [
 
 [tool.black]
 line-length = 119
+
+[tool.ty.src]
+exclude = ["tests/"]
