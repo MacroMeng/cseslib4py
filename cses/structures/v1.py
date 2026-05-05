@@ -154,6 +154,8 @@ class SingleDaySchedule(BaseModel):
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 24))
             False
         """
+        if day.weekday() + 1 != self.enable_day:
+            return False
         return self.is_enabled_on_week(utils.week_num(start_day, day))
 
 
