@@ -103,56 +103,6 @@ class SingleDaySchedule(BaseModel):
     classes: list[Lesson]
     name: str
 
-    def is_enabled_on_week(self, week: int) -> bool:
-        """
-        判断课程是否在指定的周次上启用。
-
-        Args:
-            week (int): 要检查的周次序号
-
-        Returns:
-            bool: 如果课程在指定周上启用，则返回 True；否则返回 False
-
-        Examples:
-            >>> s = SingleDaySchedule(enable_day=(1, 8), classes=[Lesson(subject='语文', start_time=datetime.time(8, 0, 0), \
-                                      end_time=datetime.time(8, 45, 0))], name='星期一')
-            >>> s.is_enabled_on_week(3)
-            True
-            >>> s.is_enabled_on_week(6)
-            False
-            >>> s.is_enabled_on_week(11)
-            True
-        """
-        raise NotImplementedError
-
-    def is_enabled_on_day(
-        self, start_day: datetime.date, day: datetime.date
-    ) -> bool:
-        """
-        判断课程是否在指定的日期上启用。
-
-        Args:
-            day (int): 要检查的日期（1 表示星期一，2 表示星期二，依此类推）
-            start_day (datetime.date): 课程开始的日期，用于计算周次
-
-        Returns:
-            bool: 如果课程在指定日期上启用，则返回 True；否则返回 False
-
-        Examples:
-            >>> s = SingleDaySchedule(enable_day=(1, 8),
-                                      classes=[Lesson(subject='语文',
-                                                      start_time=datetime.time(8, 0, 0),
-                                                      end_time=datetime.time(8, 45, 0))],
-                                      name='星期一')
-            >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 4))
-            True
-            >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 16))
-            True
-            >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 24))
-            False
-        """
-        raise NotImplementedError
-
 
 class Schedule(UserList[SingleDaySchedule]):
     """

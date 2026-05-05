@@ -11,13 +11,17 @@ authors = [
 description = "CSES access framework for Python, refactored by MacrosMeng."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
@@ -43,38 +47,38 @@ include = ["cses*"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.12",
+    "ruff>=0.15.0",
     "ty>=0.0.33",
-    "pytest==8.4.2",
-    "pytest-cov==7.0.0",
-    "blue>=0.9.1",
+    "pytest>=8.4.0",
+    "pytest-cov>=7.0.0",
+    "blue>=0.9.0",
     "build>=1.5.0",
     "twine>=6.2.0",
 ]
 docs = [
-    "alabaster==1.0.0",
-    "babel==2.17.0",
-    "colorama==0.4.6",
-    "docutils==0.21.2",
-    "furo==2025.9.25",
-    "imagesize==1.4.1",
-    "Jinja2==3.1.6",
-    "packaging==25.0",
-    "Pygments==2.19.2",
-    "recommonmark==0.7.1",
-    "requests==2.32.5",
-    "snowballstemmer==3.0.1",
-    "Sphinx==8.2.3",
-    "sphinx-autobuild==2025.8.25",
-    "sphinx-basic-ng==1.0.0b2",
-    "sphinx-markdown-tables==0.0.17",
-    "sphinxcontrib-applehelp==2.0.0",
-    "sphinxcontrib-devhelp==2.0.0",
-    "sphinxcontrib-htmlhelp==2.1.0",
-    "sphinxcontrib-jquery==4.1",
-    "sphinxcontrib-jsmath==1.0.1",
-    "sphinxcontrib-qthelp==2.0.0",
-    "sphinxcontrib-serializinghtml==2.0.0",
+    "alabaster>=1.0.0",
+    "babel>=2.17.0",
+    "colorama>=0.4.0",
+    "docutils>=0.21.0",
+    "furo>=2025.9.25",
+    "imagesize>=1.4.0",
+    "Jinja2>=3.1.0",
+    "packaging>=25.0",
+    "Pygments>=2.19.0",
+    "recommonmark>=0.7.0",
+    "requests>=2.32.0",
+    "snowballstemmer>=3.0.0",   
+    "Sphinx>=9.0.0",
+    "sphinx-autobuild>=2025.8.25",
+    "sphinx-basic-ng>=1.0.0b2",
+    "sphinx-markdown-tables>=0.0.17",
+    "sphinxcontrib-applehelp>=2.0.0",
+    "sphinxcontrib-devhelp>=2.0.0",
+    "sphinxcontrib-htmlhelp>=2.1.0",
+    "sphinxcontrib-jquery>=4.1.0",
+    "sphinxcontrib-jsmath>=1.0.0",
+    "sphinxcontrib-qthelp>=2.0.0",
+    "sphinxcontrib-serializinghtml>=2.0.0",
 ]
 
 [tool.black]
