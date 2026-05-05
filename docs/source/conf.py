@@ -13,6 +13,11 @@ extensions = [
     'sphinx.ext.viewcode',
 ]
 
+# 排除 Pydantic BaseModel 的 model_config 属性
+autodoc_default_options = {
+    'exclude-members': 'model_config',
+}
+
 templates_path = ['_templates']
 exclude_patterns = []
 

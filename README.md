@@ -6,15 +6,20 @@
 
 > [!WARNING]
 > 
-> [CSES](https://github.com/SmartTeachCN/CSES) 原仓库的 API 版本已经更新到 2。目前，`cseslib4py` 的主分支 `main` 还没有支持版本 2。
-> 
-> 切换到 `cses_v2` 分支来查看支持版本 2 解析的 `cseslib4py` 套件。新分支稳定后，会并入主分支。
+> [CSES](https://github.com/SmartTeachCN/CSES) 原仓库的 API 版本已经更新到 2。目前，我们已经支持解析 CSES v2。若您在使用过程中发现任何 Bug，欢迎 [前来报告](https://github.com/MacroMeng/cseslib4py/issues) 。
+>
+> 请参阅文档来了解使用 `cseslib4py` 解析 CSES v2 文件的方法。
 
 > [!IMPORTANT]
-> 
+>
 > `cseslib4py` 仍然是一个**测试版软件**，可能会做出破坏性变更。
-> 
+>
 > 请查阅我们的文档来了解详细信息。
+
+
+> [!IMPORTANT]
+>
+> 即将对 `cseslib4py` 提供的 API 进行彻底的重构。参阅文档了解更多信息。
 
 ## 简介
 

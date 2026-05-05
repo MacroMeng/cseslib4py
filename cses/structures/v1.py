@@ -1,5 +1,5 @@
 """
-本文档是cses包中的structures.py文件的文档。
+本文档是 cses 包中 structures.py 文件的文档。此包只包括 CSES v1 数据结构。
 该文件定义了课程相关的数据结构，包括科目、课程、周次类型和单日课程安排。
 
 .. caution:: 该模块中的数据结构仅用于表示课程结构（与其附属工具），不包含实际的读取/写入功能。
@@ -7,9 +7,15 @@
 import datetime
 from collections import UserList
 from collections.abc import Sequence
-from typing import Optional, Literal, Annotated  # pyright: ignore
+from typing import Optional, Literal, Annotated, Any  # pyright: ignore
 
-from pydantic import BaseModel, BeforeValidator, field_serializer
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    field_serializer,
+    GetCoreSchemaHandler,
+)
+from pydantic_core import CoreSchema, core_schema
 
 import cses.utils as utils
 
@@ -35,6 +41,7 @@ class Subject(BaseModel):
         >>> s.room
         'A101'
     """
+
     name: str
     simplified_name: Optional[str] = None
     teacher: Optional[str] = None
@@ -62,13 +69,14 @@ class Lesson(BaseModel):
         >>> l.end_time
         datetime.time(8, 45)
     """
+
     subject: str
     start_time: Annotated[datetime.time, BeforeValidator(utils.ensure_time)]
     end_time: Annotated[datetime.time, BeforeValidator(utils.ensure_time)]
 
-    @field_serializer("start_time", "end_time")
+    @field_serializer('start_time', 'end_time')
     def serialize_time(self, time: datetime.time) -> str:
-        return time.strftime("%H:%M:%S")
+        return time.strftime('%H:%M:%S')
 
 
 class SingleDaySchedule(BaseModel):
@@ -91,6 +99,7 @@ class SingleDaySchedule(BaseModel):
         >>> s.weeks
         'all'
     """
+
     enable_day: Literal[1, 2, 3, 4, 5, 6, 7]
     classes: list[Lesson]
     name: str
@@ -119,15 +128,17 @@ class SingleDaySchedule(BaseModel):
         return {
             'all': True,  # 适用于所有周 -> 永久启用
             'odd': week % 2 == 1,  # 单周
-            'even': week % 2 == 0  # 双周
+            'even': week % 2 == 0,  # 双周
         }[self.weeks]
 
-    def is_enabled_on_day(self, start_day: datetime.date, day: datetime.date) -> bool:
+    def is_enabled_on_day(
+        self, start_day: datetime.date, day: datetime.date
+    ) -> bool:
         """
         判断课程是否在指定的日期上启用。
 
         Args:
-            day (int): 要检查的日期（1 表示星期一，2 表示星期二，依此类推）
+            day (datetime.date): 要检查的日期
             start_day (datetime.date): 课程开始的日期，用于计算周次
 
         Returns:
@@ -143,6 +154,8 @@ class SingleDaySchedule(BaseModel):
             >>> s.is_enabled_on_day(datetime.date(2025, 9, 1), datetime.date(2025, 9, 24))
             False
         """
+        if day.weekday() + 1 != self.enable_day:
+            return False
         return self.is_enabled_on_week(utils.week_num(start_day, day))
 
 
@@ -164,11 +177,19 @@ class Schedule(UserList[SingleDaySchedule]):
         >>> s[0].enable_day
         1
     """
+
     def __init__(self, args: Sequence[SingleDaySchedule]):
-        result = sorted(args, key=lambda arg: arg.enable_day)  # 按照启用日期（星期几）排序
+        try:
+            result = sorted(
+                args, key=lambda arg: arg.enable_day
+            )  # 按照启用日期（星期几）排序
+        except AttributeError:
+            result = sorted(args, key=lambda arg: arg['enable_day'])
         super().__init__(result)
 
-    def by_weekday(self, index: Literal[1, 2, 3, 4, 5, 6, 7]) -> SingleDaySchedule:
+    def by_weekday(
+        self, index: Literal[1, 2, 3, 4, 5, 6, 7]
+    ) -> SingleDaySchedule:
         """
         根据星期获取对应的课程安排。若索引合法，其效果相当于 ``schedule[index - 1]`` 。
 
@@ -192,6 +213,29 @@ class Schedule(UserList[SingleDaySchedule]):
             1
         """
         if index < 1 or index > 7:
-            utils.log.warning(f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week')
+            utils.log.warning(
+                f'Illegal index {utils.repr_(index)} calling {self.__class__.__qualname__}.by_week'
+            )
             raise IndexError(f'Index {index} out of range [1, 7]')
         return self.data[index - 1]
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, _: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.no_info_after_validator_function(cls, handler(list))
+
+
+class CSESStructV1(BaseModel):
+    """
+    课程表的结构。
+
+    Args:
+        version (Literal[1]): 课程表的版本号，必须为 ``1``
+        subjects (list[Subject]): 课程表的课程列表
+        schedules (Schedule): 课程表的课程安排
+    """
+
+    version: Literal[1]
+    subjects: list[Subject]
+    schedules: Schedule
