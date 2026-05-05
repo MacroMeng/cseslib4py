@@ -138,7 +138,7 @@ class SingleDaySchedule(BaseModel):
         判断课程是否在指定的日期上启用。
 
         Args:
-            day (int): 要检查的日期（1 表示星期一，2 表示星期二，依此类推）
+            day (datetime.date): 要检查的日期
             start_day (datetime.date): 课程开始的日期，用于计算周次
 
         Returns:
@@ -235,6 +235,7 @@ class CSESStructV1(BaseModel):
         subjects (list[Subject]): 课程表的课程列表
         schedules (Schedule): 课程表的课程安排
     """
+
     version: Literal[1]
     subjects: list[Subject]
     schedules: Schedule

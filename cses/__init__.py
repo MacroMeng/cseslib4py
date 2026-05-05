@@ -1,7 +1,7 @@
 """使用 ``CSES`` 类可以表示、解析一个 CSES 课程文件。"""
 import datetime
 import os
-from typing import MutableSequence
+from typing import MutableSequence, cast
 
 import yaml  # type: ignore [import]
 
@@ -73,7 +73,15 @@ class CSES:
         Raises:
             CSESError: 如果在指定日期没有找到对应的课程安排。
         """
-        raise NotImplementedError
+        if day is None:
+            day = datetime.date.today()
+
+        if self.version == 1:
+            return self._v1_today_schedule(start_day, day)
+        elif self.version == 2:
+            return self._v2_today_schedule(start_day, day)
+        else:
+            raise err.VersionError(f'不支持的版本: {self.version}')
 
     @classmethod
     def loads(cls, content: str) -> 'CSES':
@@ -104,7 +112,9 @@ class CSES:
         new_schedule.subjects = new_schedule._cses.subjects
         # 直接使用 used_cls(**data) 会导致 new_schedule.schedules 为 list[dict[str, Any]] 类型，强制转换到 SingleDaySchedule 类型
         new_schedule.schedules = [
-            used_module.SingleDaySchedule(**schedule)  # ty: ignore [invalid-argument-type]
+            used_module.SingleDaySchedule(
+                **schedule  # ty: ignore [invalid-argument-type]
+            )
             for schedule in new_schedule._cses.schedules
         ]
         if isinstance(new_schedule._cses, st.v2.CSESStructV2):
@@ -187,6 +197,36 @@ class CSES:
         if self._cses is None:
             raise err.CSESError('未初始化 CSES 课表对象，无法生成字典表示。')
         return self._cses.model_dump()
+
+    def _v1_today_schedule(
+        self, start_day: datetime.date, day: datetime.date
+    ) -> 'SingleDaySchedule':
+        for schedule in self.schedules:
+            if schedule.enable_day == day.weekday() + 1:
+                # 相同的星期，判断周数
+                if schedule.weeks == 'all':
+                    return schedule  # 适用于所有周
+                else:
+                    if schedule.is_enabled_on_day(start_day, day):
+                        return schedule
+                    else:
+                        continue
+        else:
+            raise err.CSESError(f'未找到 {day} 的课程安排。')
+
+    def _v2_today_schedule(
+        self, start_day: datetime.date, day: datetime.date
+    ) -> 'SingleDaySchedule':
+        cycle_config = cast(st.v2.Configuration, self.configuration).cycle
+
+        today_num = (
+            (day - start_day).days + 1
+        ) % cycle_config.work_count + cycle_config.rest_count
+        for schedule in self.schedules:
+            if schedule.enable_day == today_num:
+                return schedule
+        else:
+            raise err.CSESError(f'未找到 {day} 的课程安排。')
 
     def __eq__(self, other):
         if isinstance(other, type(self)):

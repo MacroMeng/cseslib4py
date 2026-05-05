@@ -194,6 +194,7 @@ class Configuration(BaseModel):
         description (Optional[str]): 课程表的描述，没有则为 ``None``
         cycle (CycleConfig): 课程周期的配置
     """
+
     name: str
     description: Optional[str] = None
     cycle: CycleConfig
@@ -209,6 +210,7 @@ class CSESStructV2(BaseModel):
         subjects (list[Subject]): 课程表的课程列表
         schedules (Schedule): 课程表的课程安排
     """
+
     version: Literal[2]
     configuration: Configuration
     subjects: list[Subject]
