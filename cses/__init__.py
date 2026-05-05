@@ -221,9 +221,9 @@ class CSES:
 
         today_num = (
             (day - start_day).days + 1
-        ) % cycle_config.work_count + cycle_config.rest_count
+        ) % (cycle_config.work_count + cycle_config.rest_count)
         for schedule in self.schedules:
-            if schedule.enable_day == today_num:
+            if today_num in schedule.enable_day:
                 return schedule
         else:
             raise err.CSESError(f'未找到 {day} 的课程安排。')
