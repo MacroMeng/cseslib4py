@@ -8,7 +8,6 @@ from cses import errors
 from cses.structures.v1 import (
     Lesson as V1Lesson,
     SingleDaySchedule as V1SingleDaySchedule,
-    Subject as V1Subject,
 )
 from cses.structures.v2 import (
     Configuration,
@@ -16,13 +15,13 @@ from cses.structures.v2 import (
     CycleSpan,
     Lesson as V2Lesson,
     SingleDaySchedule as V2SingleDaySchedule,
-    Subject as V2Subject,
 )
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _build_v1_cses(schedules: list[V1SingleDaySchedule]) -> cses.CSES:
     """构造一个 version=1 的 CSES 对象（绕过 YAML 解析）。"""
@@ -46,13 +45,13 @@ def _build_v2_cses(
     obj.subjects = []
     obj.schedules = schedules
     obj.configuration = Configuration(
-        name="test",
+        name='test',
         cycle=CycleConfig(
             work_count=work_count,
             rest_count=rest_count,
             spans=(
-                CycleSpan(activity="work", count=work_count),
-                CycleSpan(activity="rest", count=rest_count),
+                CycleSpan(activity='work', count=work_count),
+                CycleSpan(activity='rest', count=rest_count),
             ),
         ),
     )
@@ -64,6 +63,7 @@ def _build_v2_cses(
 # V1 Tests
 # ---------------------------------------------------------------------------
 
+
 class TestV1TodaySchedule:
     """version=1 的 today_schedule 测试。"""
 
@@ -73,9 +73,13 @@ class TestV1TodaySchedule:
         """weeks='all' 时，匹配对应星期的 schedule。"""
         schedule_all = V1SingleDaySchedule(
             enable_day=1,
-            classes=[V1Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="星期一",
-            weeks="all",
+            classes=[
+                V1Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期一',
+            weeks='all',
         )
         cses_obj = _build_v1_cses([schedule_all])
 
@@ -90,15 +94,23 @@ class TestV1TodaySchedule:
         """同一星期存在多个 schedule 时，weeks='all' 优先返回。"""
         schedule_all = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-全周",
-            weeks="all",
+            classes=[
+                V1Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-全周',
+            weeks='all',
         )
         schedule_odd = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="物理", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-单周",
-            weeks="odd",
+            classes=[
+                V1Lesson(
+                    subject='物理', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-单周',
+            weeks='odd',
         )
         cses_obj = _build_v1_cses([schedule_all, schedule_odd])
 
@@ -115,15 +127,23 @@ class TestV1TodaySchedule:
         """单周日期应匹配 weeks='odd' 的 schedule。"""
         schedule_odd = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="物理", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-单周",
-            weeks="odd",
+            classes=[
+                V1Lesson(
+                    subject='物理', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-单周',
+            weeks='odd',
         )
         schedule_even = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="英语", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-双周",
-            weeks="even",
+            classes=[
+                V1Lesson(
+                    subject='英语', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-双周',
+            weeks='even',
         )
         cses_obj = _build_v1_cses([schedule_odd, schedule_even])
 
@@ -138,15 +158,23 @@ class TestV1TodaySchedule:
         """双周日期应匹配 weeks='even' 的 schedule。"""
         schedule_odd = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="物理", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-单周",
-            weeks="odd",
+            classes=[
+                V1Lesson(
+                    subject='物理', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-单周',
+            weeks='odd',
         )
         schedule_even = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="英语", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-双周",
-            weeks="even",
+            classes=[
+                V1Lesson(
+                    subject='英语', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-双周',
+            weeks='even',
         )
         cses_obj = _build_v1_cses([schedule_odd, schedule_even])
 
@@ -163,14 +191,18 @@ class TestV1TodaySchedule:
         """没有匹配星期的 schedule 时应抛出 CSESError。"""
         schedule_mon = V1SingleDaySchedule(
             enable_day=1,
-            classes=[V1Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="星期一",
-            weeks="all",
+            classes=[
+                V1Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期一',
+            weeks='all',
         )
         cses_obj = _build_v1_cses([schedule_mon])
 
         # 2026-05-05 是星期二，没有对应 schedule
-        with pytest.raises(errors.CSESError, match="未找到"):
+        with pytest.raises(errors.CSESError, match='未找到'):
             cses_obj.today_schedule(
                 start_day=datetime.date(2026, 5, 1),
                 day=datetime.date(2026, 5, 5),
@@ -180,14 +212,18 @@ class TestV1TodaySchedule:
         """星期匹配但周次不匹配时，应继续查找并最终抛出 CSESError。"""
         schedule_odd = V1SingleDaySchedule(
             enable_day=2,
-            classes=[V1Lesson(subject="物理", start_time="08:00:00", end_time="09:00:00")],
-            name="星期二-单周",
-            weeks="odd",
+            classes=[
+                V1Lesson(
+                    subject='物理', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='星期二-单周',
+            weeks='odd',
         )
         cses_obj = _build_v1_cses([schedule_odd])
 
         # start_day=2026-05-01, day=2026-05-12(Tue) => week_num=2 (偶数)，不匹配 odd
-        with pytest.raises(errors.CSESError, match="未找到"):
+        with pytest.raises(errors.CSESError, match='未找到'):
             cses_obj.today_schedule(
                 start_day=datetime.date(2026, 5, 1),
                 day=datetime.date(2026, 5, 12),
@@ -199,9 +235,13 @@ class TestV1TodaySchedule:
         """day=None 时应使用 datetime.date.today()。"""
         schedule_all = V1SingleDaySchedule(
             enable_day=datetime.date.today().weekday() + 1,
-            classes=[V1Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="今天",
-            weeks="all",
+            classes=[
+                V1Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='今天',
+            weeks='all',
         )
         cses_obj = _build_v1_cses([schedule_all])
 
@@ -213,6 +253,7 @@ class TestV1TodaySchedule:
 # V2 Tests
 # ---------------------------------------------------------------------------
 
+
 class TestV2TodaySchedule:
     """version=2 的 today_schedule 测试。"""
 
@@ -220,8 +261,12 @@ class TestV2TodaySchedule:
         """基本周期匹配：day - start_day 偏移量在 enable_day 中。"""
         schedule = V2SingleDaySchedule(
             enable_day=(1, 2, 3),
-            classes=[V2Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="工作日",
+            classes=[
+                V2Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='工作日',
         )
         cses_obj = _build_v2_cses([schedule], work_count=5, rest_count=2)
 
@@ -236,15 +281,25 @@ class TestV2TodaySchedule:
         """周期应正确循环：偏移量超过 work+rest 后取模。"""
         schedule_a = V2SingleDaySchedule(
             enable_day=(1,),
-            classes=[V2Lesson(subject="A", start_time="08:00:00", end_time="09:00:00")],
-            name="A日",
+            classes=[
+                V2Lesson(
+                    subject='A', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='A日',
         )
         schedule_b = V2SingleDaySchedule(
             enable_day=(2,),
-            classes=[V2Lesson(subject="B", start_time="08:00:00", end_time="09:00:00")],
-            name="B日",
+            classes=[
+                V2Lesson(
+                    subject='B', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='B日',
         )
-        cses_obj = _build_v2_cses([schedule_a, schedule_b], work_count=5, rest_count=2)
+        cses_obj = _build_v2_cses(
+            [schedule_a, schedule_b], work_count=5, rest_count=2
+        )
 
         # 周期长度 = 5+2 = 7
         # day=2026-05-08 => (7)+1 = 8 => 8 % 7 = 1 => 匹配 schedule_a
@@ -258,13 +313,17 @@ class TestV2TodaySchedule:
         """周期中的休息日（enable_day 不含该数字）应抛出 CSESError。"""
         schedule = V2SingleDaySchedule(
             enable_day=(1, 2, 3, 4, 5),
-            classes=[V2Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="工作日",
+            classes=[
+                V2Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='工作日',
         )
         cses_obj = _build_v2_cses([schedule], work_count=5, rest_count=2)
 
         # day=2026-05-06 => (5)+1 = 6 => 6 % 7 = 6，不在 (1,2,3,4,5) 中
-        with pytest.raises(errors.CSESError, match="未找到"):
+        with pytest.raises(errors.CSESError, match='未找到'):
             cses_obj.today_schedule(
                 start_day=datetime.date(2026, 5, 1),
                 day=datetime.date(2026, 5, 6),
@@ -274,12 +333,16 @@ class TestV2TodaySchedule:
         """没有任何 schedule 匹配时应抛出 CSESError。"""
         schedule = V2SingleDaySchedule(
             enable_day=(99,),
-            classes=[V2Lesson(subject="X", start_time="08:00:00", end_time="09:00:00")],
-            name="不存在",
+            classes=[
+                V2Lesson(
+                    subject='X', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='不存在',
         )
         cses_obj = _build_v2_cses([schedule], work_count=5, rest_count=2)
 
-        with pytest.raises(errors.CSESError, match="未找到"):
+        with pytest.raises(errors.CSESError, match='未找到'):
             cses_obj.today_schedule(
                 start_day=datetime.date(2026, 5, 1),
                 day=datetime.date(2026, 5, 1),
@@ -289,8 +352,12 @@ class TestV2TodaySchedule:
         """enable_day 包含多个值时，匹配任意一个即可。"""
         schedule = V2SingleDaySchedule(
             enable_day=(1, 5, 10),
-            classes=[V2Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="多日",
+            classes=[
+                V2Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='多日',
         )
         cses_obj = _build_v2_cses([schedule], work_count=10, rest_count=4)
 
@@ -303,13 +370,19 @@ class TestV2TodaySchedule:
 
     def test_default_day_uses_today_v2(self):
         """day=None 时应使用 datetime.date.today()（v2）。"""
-        today_offset = (datetime.date.today() - datetime.date(2026, 1, 1)).days + 1
+        today_offset = (
+            datetime.date.today() - datetime.date(2026, 1, 1)
+        ).days + 1
         today_num = today_offset % 14  # work=10, rest=4
 
         schedule = V2SingleDaySchedule(
             enable_day=(today_num,),
-            classes=[V2Lesson(subject="数学", start_time="08:00:00", end_time="09:00:00")],
-            name="今天",
+            classes=[
+                V2Lesson(
+                    subject='数学', start_time='08:00:00', end_time='09:00:00'
+                )
+            ],
+            name='今天',
         )
         cses_obj = _build_v2_cses([schedule], work_count=10, rest_count=4)
 
@@ -320,6 +393,7 @@ class TestV2TodaySchedule:
 # ---------------------------------------------------------------------------
 # Version Dispatch Tests
 # ---------------------------------------------------------------------------
+
 
 class TestVersionDispatch:
     """today_schedule 版本分发测试。"""
@@ -333,7 +407,7 @@ class TestVersionDispatch:
         obj.configuration = None
         obj._cses = None
 
-        with pytest.raises(errors.VersionError, match="不支持的版本"):
+        with pytest.raises(errors.VersionError, match='不支持的版本'):
             obj.today_schedule(
                 start_day=datetime.date(2026, 5, 1),
                 day=datetime.date(2026, 5, 1),

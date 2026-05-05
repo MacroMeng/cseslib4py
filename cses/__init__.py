@@ -219,9 +219,9 @@ class CSES:
     ) -> 'SingleDaySchedule':
         cycle_config = cast(st.v2.Configuration, self.configuration).cycle
 
-        today_num = (
-            (day - start_day).days + 1
-        ) % (cycle_config.work_count + cycle_config.rest_count)
+        today_num = ((day - start_day).days + 1) % (
+            cycle_config.work_count + cycle_config.rest_count
+        )
         for schedule in self.schedules:
             if today_num in schedule.enable_day:
                 return schedule
